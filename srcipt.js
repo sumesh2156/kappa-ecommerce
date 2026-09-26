@@ -21,8 +21,8 @@ async function loadData() {
 
         // Load categories and products separately
         const [categoriesResponse, productsResponse] = await Promise.all([
-            fetch("http://localhost:5000/api/categories"),
-            fetch("http://localhost:5000/api/products")
+            fetch("https://kappa-ecommerce-production.up.railway.app/api/categories"),
+            fetch("https://kappa-ecommerce-production.up.railway.app/api/products")
         ]);
 
         if (!categoriesResponse.ok || !productsResponse.ok) {
@@ -739,7 +739,7 @@ const newOrder  = {
 
 
 try {
-    const response = await fetch("http://localhost:5000/api/orders", {
+    const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/orders", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -758,7 +758,7 @@ console.log("Order saved to backend:", result);
 order.push(newOrder);
 
 // Clear cart from MySQL backend
-const clearCartResponse = await fetch("http://localhost:5000/api/cart", {
+const clearCartResponse = await fetch("https://kappa-ecommerce-production.up.railway.app/api/cart", {
     method: "DELETE"
 });
 
@@ -977,7 +977,7 @@ if(currentUser.email && !validateEmail(currentUser.email)){
 
 async function saveUserDataToBackend() {
     try {
-       const response = await fetch("http://localhost:5000/api/user",  {
+       const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/user",  {
             method: "POST",
 
             headers: {
@@ -1047,7 +1047,7 @@ async function saveCartToBackend() {
     try {
 
         const response = await fetch(
-            "http://localhost:5000/api/cart",
+            "https://kappa-ecommerce-production.up.railway.app/api/cart",
             {
                 method: "PUT",
 
@@ -1166,7 +1166,7 @@ async function loadCartData() {
     try {
 
         const response = await fetch(
-            `http://localhost:5000/api/cart?userId=${currentUser.id}`
+            `https://kappa-ecommerce-production.up.railway.app/api/cart?userId=${currentUser.id}`
         );
 
         if (!response.ok) {
@@ -1190,7 +1190,7 @@ async function loadCartData() {
 
 async function loadOrderData() {
     try {
-        const response = await fetch("http://localhost:5000/api/orders");
+        const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/orders");
 
         if (!response.ok) {
             throw new Error("Failed to load orders");
@@ -1250,7 +1250,7 @@ async function registerUser() {
     try {
 
         const response = await fetch(
-            "http://localhost:5000/api/register",
+            "https://kappa-ecommerce-production.up.railway.app/api/register",
             {
                 method: "POST",
 
@@ -1304,7 +1304,7 @@ async function loginUser() {
     }
 
     try {
-        const response = await fetch("http://localhost:5000/api/login", {
+        const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/login", {
             method: "POST",
 
             headers: {
