@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kappa-shop online kappa products</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header"> 
+        <div class="nav-container">
+            <a href="#" class="logo" onclick="showpage('home')">KAPPA</a>
+            <div class="search-bar"> 
+                <input type="text" id="searchInput" placeholder="search products...">
+                <button onclick="searchProducts()">search</button>
+                </div>
+
+                <!-- <div class="nav-actions">
+                    <a href="#" class="nav-btn">👤 Account</a>
+                    <a href="#" class="nav-btn">🛍️ Cart <span id="cartCount">0</span></a>
+                    <a href="#" class="nav-btn">📦 Order</a>
+                </div> -->
+
+                <div class="nav-actions">
+                    <a href="#" class="nav-btn" onclick="showpage('account')">👤 Account</a>
+                    <a href="#" class="nav-btn" onclick="showpage('cart')">🛍️ Cart <span id="cartCount">0</span></a>
+                    <a href="#" class="nav-btn" onclick="showpage('orders')">📦 Order</a>
+                
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        </div>
+    </header>
+   <div class="sidebar-overlay" onclick="closeSidebar()">
+    <div class="sidebar" onclick="event.stopPropagation()">
+
+        <button class="close-sidebar" onclick="closeSidebar()">
+            ❌
+        </button>
+
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" onclick="showpage('account'); closeSidebar()">
+                    👤 Account
+                </a>
+            </li>
+
+            <li>
+                <a href="#" onclick="showpage('cart'); closeSidebar()">
+                    🛍️ Cart
+                </a>
+            </li>
+
+            <li>
+                <a href="#" onclick="showpage('orders'); closeSidebar()">
+                    📦 Order
+                </a>
+            </li>
+        </ul>
+
+    </div>
+</div>
+    <main class="main-content">
+        <div id="homepage" class="page">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>welcome to kappa online</h1>
+                    <p>
+                        Discover kappa products
+                    </p>
+                    <a href="#categories" class="hero-btn">Shop now</a>
+                </div>
+            </section>
+            <section class="categories" id="categories">
+                <div class="container">
+                    <h2>
+                        Shop by categories
+                    </h2>
+                    <div class="categories-grid" id="categorygrid">
+                        
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div id="categorypage" class="page hidden">
+            <div class="container">
+                <h1 id="categoryTitle">
+                    products
+                </h1>
+            
+        
+                 <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="sortBy">Sort By:</label>
+                            <select id="sortBy" onchange="applyFilters()">
+                                    <option value="relevance">Relevance</option>
+                                    <option value="price-low">Price: Low to High</option>
+                                    <option value="price-high">Price: High to Low</option>
+                                    <option value="rating">Rating</option>
+      </select>
+    </div> 
+
+
+
+
+    
+    <div class="filter-group">
+      <label for="priceRange">Max Price:</label> 
+      <input type="range" id="priceRange" min="0" max="10000" value="10000"  onchange="applyFilters()">
+      <span id="priceValue"> ₹ 10000</span>
+    </div>
+    <div class="filter-group">
+        <label for="brandfilter">Brand:</label>
+
+        <select name="" id="brandfilter"  onchange="applyFilters()">
+            <option value="">All brands</option>
+        </select>
+
+    </div>
+    </div>
+    </div>
+    <div class="product-grid" id="productGrid">
+
+    </div>
+  </div>
+</div>
+<div id="productpage" class="page hidden">
+    <div class="container">
+        <div class="product-detail" id="productDetail">
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="cartpage" class="page hidden">
+  <div class="container">
+    <h1>My Cart</h1>
+    
+
+    <div id="cartitems"></div>
+    
+
+    <div class="cart-summery" id="cartsummery"></div>
+  </div>
+</div>
+
+<!-- Place Order Page -->
+<div id="orderpage" class="page hidden">
+  <div class="container">
+    <h1>Place Order</h1>
+    <div id="orderSteps">
+      <!-- Dynamic step content (e.g., shipping, payment) goes here -->
+    </div>
+  </div>
+</div>
+
+<!-- Order History Page -->
+<div id="orderspage" class="page hidden">
+  <div class="container">
+    <h1>My Orders</h1> <!-- Fixed the typo here -->
+    <div id="ordersList">
+      <!-- Dynamic list of past orders goes here -->
+    </div>
+  </div>
+</div>
+
+
+<div id="accountpage" class="page hidden">
+  <div class="container">
+
+    <h1>My Account</h1>
+
+    <!-- ========================= -->
+    <!-- REGISTER / LOGIN -->
+    <!-- ========================= -->
+
+    <div class="order-form auth-container">
+
+      <!-- REGISTER SECTION -->
+      <div id="registerSection">
+
+        <h2>Create Account</h2>
+
+        <div class="form-group">
+          <label for="registerName">Name:</label>
+          <input
+            type="text"
+            id="registerName"
+            placeholder="Enter your name"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="registerEmail">Email:</label>
+          <input
+            type="email"
+            id="registerEmail"
+            placeholder="Enter your email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="registerPassword">Password:</label>
+          <input
+            type="password"
+            id="registerPassword"
+            placeholder="Enter your password"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="registerPhone">Phone:</label>
+          <input
+            type="tel"
+            id="registerPhone"
+            placeholder="Enter your 10-digit phone number"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="registerAddress">Address:</label>
+          <textarea
+            id="registerAddress"
+            placeholder="Enter your address"
+          ></textarea>
+        </div>
+
+        <button
+          class="btn-primary"
+          onclick="registerUser()"
+        >
+          Register
+        </button>
+
+        <p>
+          Already have an account?
+
+          <button
+            type="button"
+            onclick="showLogin()"
+          >
+            Login
+          </button>
+        </p>
+
+      </div>
+
+
+      <!-- LOGIN SECTION -->
+      <div id="loginSection" class="hidden">
+
+        <h2>Login</h2>
+
+        <div class="form-group">
+          <label for="loginEmail">Email:</label>
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="Enter your email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password:</label>
+          <input
+            type="password"
+            id="loginPassword"
+            placeholder="Enter your password"
+          >
+        </div>
+
+        <button
+          class="btn-primary"
+          onclick="loginUser()"
+        >
+          Login
+        </button>
+
+        <p>
+          Don't have an account?
+
+          <button
+            type="button"
+            onclick="showRegister()"
+          >
+            Register
+          </button>
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- PERSONAL INFORMATION -->
+    <!-- ========================= -->
+
+    <div class="order-form hidden" id="profileSection">
+
+      <h2>Personal Information</h2>
+
+      <div class="form-group">
+        <label for="userName">Name:</label>
+
+        <input
+          type="text"
+          id="userName"
+          placeholder="Enter your name"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label for="userEmail">Email:</label>
+
+        <input
+          type="email"
+          id="userEmail"
+          placeholder="Enter your email"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label for="userPhone">Phone:</label>
+
+        <input
+          type="tel"
+          id="userPhone"
+          placeholder="Enter your phone"
+        >
+      </div>
+
+
+      <div class="form-group">
+        <label for="userAddress">Address:</label>
+
+        <textarea
+          id="userAddress"
+          placeholder="Enter your Address"
+        ></textarea>
+      </div>
+
+
+      <button
+        class="btn-primary"
+        onclick="saveUserInfo()"
+      >
+        Save Information
+      </button>
+
+
+      <button
+    class="btn-secondary"
+    onclick="logoutUser()"
+    style="margin-left: 10px;"
+>
+    Logout
+</button>
+
+    </div>
+
+  </div>
+</div>
+
+
+
+
+
+    </main>
+    <footer class="footer">
+      <div class="container">
+        <div  class="footer-content">
+          <div class="footer-section">
+            <h3>KAPPA</h3>
+            <p>
+              Your trusted online shopping destination for quality products at great prices.
+
+            </p>
+          </div>
+          <div class="footer-section">
+            <h4>Quick links</h4>
+            <ul>
+              <li>
+                <a href="#" onclick="showpage('home')"> Home</a>
+                
+              </li>
+              <li>
+                <a href="#" onclick="showpage('account')"> My account</a>
+                
+              </li>
+              <li>
+                <a href="#" onclick="showpage('cart')"> Cart</a>
+                
+              </li>
+              <li>
+                <a href="#" onclick="showpage('orders')"> orders</a>
+                
+              </li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Customer Services</h4>
+            <ul>
+              <li>
+                <a href="#" >Contact us</a>
+              </li>
+              <li>
+                <a href="#" > FAQ</a>
+              </li>
+              <li>
+                <a href="#" >Return Policy</a>
+              </li>
+              <li>
+                <a href="#" > shipping Info</a>
+              </li>
+            </ul>
+          </div>
+          <div class="footer-section">
+            <h4>Follow us</h4>
+            <div class="social-links">
+              <a href="#">Facebook</a>
+              <a href="#">Twitter</a>
+              <a href="#">Instagram</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>&copy; 2026 KAPPA. All rights reserved.</p>
+
+        </div>
+      </div>
+
+    </footer>
+
+
+    <script src="srcipt.js"></script>
+</body>
+</html>  
+
+
+
+
+
