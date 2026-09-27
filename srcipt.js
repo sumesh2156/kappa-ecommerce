@@ -697,6 +697,11 @@ function proceedToPayment() {
 
 async function placeOrder() {
 
+    if (!currentUser || !currentUser.id) {
+    alert("Please login before placing an order.");
+    return;
+}
+
     if(currentUser.phone && !validatePhone(currentUser.phone)){
     alert("Please enter a valid 10-digit phone number.");
     return;
@@ -724,6 +729,7 @@ const deliveryCharges = subtotal > 500 ? 0 : 50;
 
 // 3. Construct the order object
 const newOrder  = {
+    userId: currentUser.id,
   id: orderId,
   items: [...cart],
   total: cart.reduce((total,item)=> total +(item.price * item.quantity),0), // Grand total including delivery
@@ -778,6 +784,15 @@ console.log("Cart cleared after order");
     alert("Failed to place order");
     return;
 }
+
+
+
+
+
+
+
+
+
 
 document.getElementById("orderSteps").innerHTML = `
 <div class="order-success">
@@ -1151,42 +1166,39 @@ async function loadUserData() {
 // }
 
 
+async function loadOrderData() {
 
-async function loadCartData() {
-
-    // No logged-in user
+    // If nobody is logged in, show no orders
     if (!currentUser || !currentUser.id) {
-        cart = [];
-        updateCartCount();
-
-        console.log("No logged-in user. Cart not loaded.");
+        order = [];
+        console.log("No logged-in user. Orders not loaded.");
         return;
     }
 
     try {
-
         const response = await fetch(
-            `https://kappa-ecommerce-production.up.railway.app/api/cart?userId=${currentUser.id}`
+            `https://kappa-ecommerce-production.up.railway.app/api/orders/${currentUser.id}`
         );
 
         if (!response.ok) {
-            throw new Error("Failed to load cart");
+            throw new Error("Failed to load orders");
         }
 
-        cart = await response.json();
-
-        updateCartCount();
+        order = await response.json();
 
         console.log(
-            `Cart loaded for user ${currentUser.id}:`,
-            cart
+            `Orders loaded for user ${currentUser.id}:`,
+            order
         );
 
     } catch (error) {
-
-        console.error("Error loading cart:", error);
+        console.error("Error loading orders:", error);
+        order = [];
     }
 }
+
+
+
 
 async function loadOrderData() {
     try {

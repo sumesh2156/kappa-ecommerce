@@ -390,14 +390,23 @@ app.delete("/api/cart", (req, res) => {
 // =========================
 
 // Get all orders
-app.get("/api/orders", (req, res) => {
+app.get("/api/orders/:userId", (req, res) => {
+
+    const userId = Number(req.params.userId);
+
+    if (!userId) {
+        return res.status(400).json({
+            message: "User ID is required"
+        });
+    }
 
     const orderSql = `
         SELECT * FROM orders
+        WHERE user_id = ?
         ORDER BY created_at DESC
     `;
 
-    db.query(orderSql, (err, orders) => {
+    db.query(orderSql, [userId], (err, orders) => {
 
         if (err) {
             console.error("Error fetching orders:", err);
@@ -411,12 +420,15 @@ app.get("/api/orders", (req, res) => {
             return res.json([]);
         }
 
+        const orderIds = orders.map(order => order.id);
+
         const itemSql = `
             SELECT * FROM order_items
+            WHERE order_id IN (?)
             ORDER BY id
         `;
 
-        db.query(itemSql, (err, items) => {
+        db.query(itemSql, [orderIds], (err, items) => {
 
             if (err) {
                 console.error("Error fetching order items:", err);
@@ -427,7 +439,6 @@ app.get("/api/orders", (req, res) => {
             }
 
             const result = orders.map(order => ({
-
                 id: order.id,
 
                 items: items
@@ -443,19 +454,12 @@ app.get("/api/orders", (req, res) => {
                     })),
 
                 total: Number(order.subtotal),
-
                 deliveryCharges: Number(order.shipping),
-
                 paymentMethod: order.payment_method,
-
                 status: order.status,
-
                 address: order.address,
-
                 phone: order.phone,
-
                 name: order.customer_name,
-
                 orderDate: order.created_at
             }));
 
@@ -484,31 +488,33 @@ app.post("/api/orders", (req, res) => {
 
     const orderSql = `
         INSERT INTO orders
-        (
-            customer_name,
-            email,
-            phone,
-            address,
-            subtotal,
-            shipping,
-            total,
-            payment_method,
-            status
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+(
+    user_id,
+    customer_name,
+    email,
+    phone,
+    address,
+    subtotal,
+    shipping,
+    total,
+    payment_method,
+    status
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
-    const orderValues = [
-        newOrder.name,
-        newOrder.email || null,
-        newOrder.phone,
-        newOrder.address,
-        subtotal,
-        shipping,
-        finalTotal,
-        newOrder.paymentMethod,
-        newOrder.status || "confirmed"
-    ];
+   const orderValues = [
+    newOrder.userId,
+    newOrder.name,
+    newOrder.email || null,
+    newOrder.phone,
+    newOrder.address,
+    subtotal,
+    shipping,
+    finalTotal,
+    newOrder.paymentMethod,
+    newOrder.status || "confirmed"
+];
 
     db.query(orderSql, orderValues, (err, result) => {
 
