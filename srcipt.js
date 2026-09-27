@@ -35,7 +35,7 @@ async function loadData() {
         console.log("Categories loaded:", categories);
         console.log("Products loaded from MySQL:", products);
 
-        initializeApp();
+        await initializeApp();
 
     } catch (error) {
 
@@ -1154,16 +1154,39 @@ async function loadUserData() {
         };
     }
 }
-// function loadCartData() {
-//     try {
-//         if (window.cartData) {
-//             cart = window.cartData
-//             updateCartCount()
-//         }
-//     } catch (e) {
-//         console.log("Storage not available.");
-//     }
-// }
+async function loadCartData() {
+
+    // No logged-in user
+    if (!currentUser || !currentUser.id) {
+        cart = [];
+        updateCartCount();
+
+        console.log("No logged-in user. Cart not loaded.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `https://kappa-ecommerce-production.up.railway.app/api/cart?userId=${currentUser.id}`
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to load cart");
+        }
+
+        cart = await response.json();
+
+        updateCartCount();
+
+        console.log(
+            `Cart loaded for user ${currentUser.id}:`,
+            cart
+        );
+
+    } catch (error) {
+        console.error("Error loading cart:", error);
+    }
+}
 
 
 async function loadOrderData() {
