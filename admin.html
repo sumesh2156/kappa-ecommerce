@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAPPA Admin</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div id="loginView" class="login-shell">
+    <form class="login-card" onsubmit="adminLogin(event)">
+      <h1>KAPPA Admin</h1>
+      <p>Sign in with the account configured as the store administrator.</p>
+      <label>Email<input id="adminEmail" type="email" required></label>
+      <label>Password<input id="adminPassword" type="password" required></label>
+      <button type="submit">Sign in</button>
+      <p id="loginMessage" class="message"></p>
+      <a href="index.html">← Back to store</a>
+    </form>
+  </div>
+
+  <div id="adminView" class="hidden">
+    <header class="admin-header">
+      <div><strong>KAPPA</strong> <span>Admin Panel</span></div>
+      <button onclick="adminLogout()">Logout</button>
+    </header>
+    <div class="admin-layout">
+      <aside>
+        <button class="tab active" data-tab="products" onclick="showAdminTab('products', this)">Products</button>
+        <button class="tab" data-tab="orders" onclick="showAdminTab('orders', this)">Orders</button>
+        <button class="tab" data-tab="users" onclick="showAdminTab('users', this)">Users</button>
+        <a href="index.html">Open Store</a>
+      </aside>
+      <main>
+        <section id="productsTab" class="admin-section">
+          <div class="section-title"><div><h1>Products</h1><p>Add, edit, delete and manage stock.</p></div><button onclick="openProductForm()">+ Add Product</button></div>
+          <div id="productFormCard" class="panel hidden">
+            <div class="section-title"><h2 id="productFormTitle">Add Product</h2><button class="secondary" onclick="closeProductForm()">Cancel</button></div>
+            <form id="productForm" class="product-form" onsubmit="saveProduct(event)">
+              <input id="editProductId" type="hidden">
+              <label>Name<input id="pName" required></label>
+              <label>Brand<input id="pBrand"></label>
+              <label>Category<select id="pCategory" required><option value="">Select category</option></select></label>
+              <label>Price (₹)<input id="pPrice" type="number" min="0" step="0.01" required></label>
+              <label>Original Price (₹)<input id="pOriginalPrice" type="number" min="0" step="0.01"></label>
+              <label>Discount (%)<input id="pDiscount" type="number" min="0" max="100" value="0"></label>
+              <label>Rating<input id="pRating" type="number" min="0" max="5" step="0.1" value="0"></label>
+              <label>Stock Quantity<input id="pStock" type="number" min="0" step="1" required value="0"></label>
+              <label>Colors (comma separated)<input id="pColors" placeholder="Black, White, Blue"></label>
+              <label>Sizes (comma separated)<input id="pSizes" placeholder="S, M, L, XL"></label>
+              <label class="wide">Description<textarea id="pDescription" rows="4"></textarea></label>
+              <label class="wide">Image URL (optional)<input id="pImageUrl" placeholder="https://..."></label>
+              <label class="wide">Or choose image file<input id="pImageFile" type="file" accept="image/*" onchange="previewImage(event)"></label>
+              <div class="wide image-preview-wrap"><img id="imagePreview" class="image-preview hidden" alt="Product preview"></div>
+              <div class="wide"><button type="submit">Save Product</button></div>
+            </form>
+            <p id="productMessage" class="message"></p>
+          </div>
+          <div class="panel table-wrap"><table><thead><tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div>
+        </section>
+
+        <section id="ordersTab" class="admin-section hidden">
+          <div class="section-title"><div><h1>Orders</h1><p>View orders and update delivery status.</p></div></div>
+          <div class="panel table-wrap"><table><thead><tr><th>ID</th><th>Customer</th><th>Items Ordered</th><th>Total</th><th>Payment</th><th>Status</th><th>Date & Time</th></tr></thead><tbody id="ordersBody"></tbody></table></div>
+        </section>
+
+        <section id="usersTab" class="admin-section hidden">
+          <div class="section-title"><div><h1>Users</h1><p>Registered customer accounts.</p></div></div>
+          <div class="panel table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Address</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script src="admin.js"></script>
+</body>
+</html>
