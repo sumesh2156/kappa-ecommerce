@@ -1,3 +1,7 @@
+const API = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  ? "http://localhost:5000"
+  : "https://kappa-ecommerce-production.up.railway.app";
+
 let categories =[];
 let products =[];
 let currentUser ={
@@ -21,8 +25,8 @@ async function loadData() {
 
         // Load categories and products separately
         const [categoriesResponse, productsResponse] = await Promise.all([
-            fetch("https://kappa-ecommerce-production.up.railway.app/api/categories"),
-            fetch("https://kappa-ecommerce-production.up.railway.app/api/products")
+            fetch(`${API}/api/categories`),
+            fetch(`${API}/api/products`)
         ]);
 
         if (!categoriesResponse.ok || !productsResponse.ok) {
@@ -266,6 +270,7 @@ function renderProducts(products = filteredproducts) {
                     ${"★".repeat(Math.floor(product.rating))}${"☆".repeat(5-Math.floor(product.rating))}
                     ${product.rating} 
                 </div>
+                <div class="stock-label ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">${product.stock > 0 ? `${product.stock} in stock` : "Out of Stock"}</div>
                 <div class="product-price">
                 <span class="current-price"> ₹ ${product.price}</span>
                 <span class="orignal-price"> ₹ ${product.originalPrice}</span>
@@ -371,9 +376,12 @@ function showProduct(productId) {
   <p>💵 Cash on delivery available</p>
 </div>
 
+<div class="stock-label ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+   ${product.stock > 0 ? `${product.stock} item(s) in stock` : 'Out of Stock'}
+</div>
 <div class="product-actions">
-   <button class="btn-primary" onclick="addToCart(${product.id})">Add to cart</button>
-   <button class="btn-secondary" onclick="buynow(${product.id})">BUY NOW</button>
+   <button class="btn-primary" onclick="addToCart(${product.id})" ${product.stock <= 0 ? 'disabled' : ''}>Add to cart</button>
+   <button class="btn-secondary" onclick="buynow(${product.id})" ${product.stock <= 0 ? 'disabled' : ''}>BUY NOW</button>
    </div>
 </div>
 
@@ -407,6 +415,10 @@ function addToCart(productId) {
  
   const product = products.find(p => p.id === productId); 
   if (!product) return;
+  if (!product.inStock || product.stock <= 0) {
+    alert("This product is out of stock.");
+    return;
+  }
 
   
   const selectedColor = document.getElementById("selectedColor")?.value || "";
@@ -418,6 +430,10 @@ function addToCart(productId) {
     item.size === selectedSize);
 
 if (existingItem) {
+  if (existingItem.quantity >= product.stock) {
+    alert(`Only ${product.stock} item(s) are available.`);
+    return;
+  }
   existingItem.quantity += 1;
 } else {
   cart.push({
@@ -529,15 +545,27 @@ cartsummery.innerHTML = `
      
 
 
-function updateQuantity(index, Change, newValue =null){
-    if(newValue !==null){
-        cart[index].quantity = Math.max(1,parent(newValue) || 1)
-    }else{
-        cart[index].quantity = Math.max(1, cart[index].quantity + Change)
+function updateQuantity(index, Change, newValue = null){
+    const item = cart[index];
+    const product = products.find(p => p.id === item.id);
+    const maxStock = product ? product.stock : item.quantity;
+    let wanted;
+
+    if (newValue !== null) {
+        wanted = Math.max(1, parseInt(newValue, 10) || 1);
+    } else {
+        wanted = Math.max(1, item.quantity + Change);
     }
 
+    if (wanted > maxStock) {
+        alert(`Only ${maxStock} item(s) are available.`);
+        wanted = maxStock;
+    }
+
+    item.quantity = wanted;
     updateCartCount();
     saveCartData();
+    saveCartToBackend();
     rendercart();
 }
 
@@ -745,7 +773,7 @@ const newOrder  = {
 
 
 try {
-    const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/orders", {
+    const response = await fetch(`${API}/api/orders`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -764,7 +792,7 @@ console.log("Order saved to backend:", result);
 order.push(newOrder);
 
 // Clear cart from MySQL backend
-const clearCartResponse = await fetch("https://kappa-ecommerce-production.up.railway.app/api/cart", {
+const clearCartResponse = await fetch(`${API}/api/cart?userId=${currentUser.id}`, {
     method: "DELETE"
 });
 
@@ -807,6 +835,30 @@ document.getElementById("orderSteps").innerHTML = `
 `;
 }
 
+function parseOrderDate(value) {
+    if (!value) return null;
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function getDeliveryDate(orderData) {
+    const explicit = parseOrderDate(orderData.deliveryDate);
+    if (explicit) return explicit;
+    const placed = parseOrderDate(orderData.orderDate);
+    if (!placed) return null;
+    const delivery = new Date(placed);
+    delivery.setDate(delivery.getDate() + 7);
+    return delivery;
+}
+
+function formatCustomerDate(value, includeTime = false) {
+    const d = value instanceof Date ? value : parseOrderDate(value);
+    if (!d) return "Not available";
+    return includeTime
+        ? d.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+        : d.toLocaleDateString("en-IN", { dateStyle: "medium" });
+}
+
 function renderOrders() {
     const ordersList = document.getElementById("ordersList");
     
@@ -824,8 +876,9 @@ function renderOrders() {
 
     // Render each order
     sortedOrders.forEach(order => {
-        const currentDate = new Date(); 
-        const isDelivered = currentDate > new Date(order.deliveryDate);
+        const currentDate = new Date();
+        const deliveryDate = getDeliveryDate(order);
+        const isDelivered = String(order.status || "").toLowerCase() === "delivered";
 
         const orderDiv = document.createElement("div"); 
         orderDiv.className = "order-card";
@@ -856,7 +909,7 @@ order.items.forEach(item => {
         </span>
     </div>
     <div class="order-meta">
-        <p><strong>Order Date:</strong>${new Date(order.orderDate).toLocaleDateString()}</p>
+        <p><strong>Order Date:</strong>${formatCustomerDate(order.orderDate, true)}</p>
         <p><strong>Total:</strong> ₹${(order.total + order.deliveryCharges).toFixed(2)}</p>
         <p><strong>Items:</strong> ${order.items.length} item${order.items.length > 1 ? "s" : ""}</p>
     </div>
@@ -868,7 +921,7 @@ order.items.forEach(item => {
 
 <div class="order-details" id="details-${order.id}" style="display: none;">
     <div class="order-info">
-        <p><strong>Delivery Date:</strong> ${new Date(order.deliveryDate).toLocaleDateString()}</p> 
+        <p><strong>Delivery Date:</strong> ${formatCustomerDate(deliveryDate)}</p> 
         <p><strong>Payment Method:</strong> ${order.paymentMethod.toUpperCase()}</p>
         
         <div class="address-section"> 
@@ -992,7 +1045,7 @@ if(currentUser.email && !validateEmail(currentUser.email)){
 
 async function saveUserDataToBackend() {
     try {
-       const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/user",  {
+       const response = await fetch(`${API}/api/user`,  {
             method: "POST",
 
             headers: {
@@ -1062,7 +1115,7 @@ async function saveCartToBackend() {
     try {
 
         const response = await fetch(
-            "https://kappa-ecommerce-production.up.railway.app/api/cart",
+            `${API}/api/cart`,
             {
                 method: "PUT",
 
@@ -1167,7 +1220,7 @@ async function loadCartData() {
 
     try {
         const response = await fetch(
-            `https://kappa-ecommerce-production.up.railway.app/api/cart?userId=${currentUser.id}`
+            `${API}/api/cart?userId=${currentUser.id}`
         );
 
         if (!response.ok) {
@@ -1200,7 +1253,7 @@ async function loadOrderData() {
 
     try {
         const response = await fetch(
-            `https://kappa-ecommerce-production.up.railway.app/api/orders/${currentUser.id}`
+            `${API}/api/orders/${currentUser.id}`
         );
 
         if (!response.ok) {
@@ -1222,23 +1275,6 @@ async function loadOrderData() {
 
 
 
-
-async function loadOrderData() {
-    try {
-        const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/orders");
-
-        if (!response.ok) {
-            throw new Error("Failed to load orders");
-        }
-
-        order = await response.json();
-
-        console.log("Orders loaded from backend:", order);
-
-    } catch (error) {
-        console.error("Error loading orders:", error);
-    }
-}
 
 function loadRecentlyViewed() {
   try {
@@ -1285,7 +1321,7 @@ async function registerUser() {
     try {
 
         const response = await fetch(
-            "https://kappa-ecommerce-production.up.railway.app/api/register",
+            `${API}/api/register`,
             {
                 method: "POST",
 
@@ -1339,7 +1375,7 @@ async function loginUser() {
     }
 
     try {
-        const response = await fetch("https://kappa-ecommerce-production.up.railway.app/api/login", {
+        const response = await fetch(`${API}/api/login`, {
             method: "POST",
 
             headers: {
